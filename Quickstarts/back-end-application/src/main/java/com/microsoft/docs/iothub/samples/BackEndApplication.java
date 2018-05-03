@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 // This application uses the Azure IoT Hub service SDK for Java
 // For samples see: https://github.com/Azure/azure-iot-sdk-java/tree/master/service/iot-service-samples
 
