@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Android App Sample - Device Client</string>
+    <string name="start">START</string>
+    <string name="stop">STOP</string>
+</resources>
