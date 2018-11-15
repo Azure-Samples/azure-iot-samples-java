@@ -1,7 +1,8 @@
 apply plugin: 'com.android.application'
 
 //***********************************************************************************************//
-def IOTHUB_DEVICE_CONNECTION_STRING_ENV_VAR_NAME = project.hasProperty('DeviceConnectionString') ? '"'+project.property('DeviceConnectionString')+'"' : '"Define Device Connection"'
+def IOTHUB_CONNECTION_STRING_ENV_VAR_NAME = project.hasProperty('ConnectionString') ? '"'+project.property('ConnectionString')+'"' : '"Define Iot Hub Connection String"'
+def DEVICE_ID = project.hasProperty('DeviceId') ? '"'+project.property('DeviceId')+'"' : '"Define Target Device Id"'
 def STRING='String'
 //***********************************************************************************************//
 
@@ -17,7 +18,8 @@ android {
         versionName "1.0"
         each {
             //buildTypes.mBuildConfigFields 'DATATYPE','VARIABLE',|"GRADLE VARIABLE|"'
-            buildConfigField STRING, 'DeviceConnectionString', IOTHUB_DEVICE_CONNECTION_STRING_ENV_VAR_NAME
+            buildConfigField STRING, 'ConnectionString', IOTHUB_CONNECTION_STRING_ENV_VAR_NAME
+            buildConfigField STRING, 'DeviceId', DEVICE_ID
         }
     }
     buildTypes {
@@ -37,6 +39,11 @@ android {
         exclude 'META-INF/NOTICE.txt'
         exclude 'thirdpartynotice.txt'
     }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 }
 
 dependencies {
@@ -44,11 +51,7 @@ dependencies {
     implementation 'com.android.support:appcompat-v7:27.1.1'
     implementation 'com.android.support:multidex:1.0.3'
 
-    implementation ('com.microsoft.azure.sdk.iot:iot-device-client:1.14.0'){
-        exclude module: 'azure-storage'
-    }
-    implementation ('com.microsoft.azure.android:azure-storage-android:2.0.0@aar')
-    implementation ('org.apache.commons:commons-lang3:3.6')
+    implementation ('com.microsoft.azure.sdk.iot:iot-service-client:1.15.1')
 }
 
 repositories {

@@ -1,4 +1,4 @@
-package com.iothub.azure.microsoft.com.androidsample;
+package com.microsoft.azure.sdk.iot.samples.androidsample;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -8,15 +8,21 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.microsoft.azure.sdk.iot.device.DeviceClient;
+import com.microsoft.azure.sdk.iot.device.DeviceTwin.DeviceMethodData;
 import com.microsoft.azure.sdk.iot.device.IotHubClientProtocol;
 import com.microsoft.azure.sdk.iot.device.IotHubEventCallback;
 import com.microsoft.azure.sdk.iot.device.IotHubMessageResult;
 import com.microsoft.azure.sdk.iot.device.IotHubStatusCode;
 import com.microsoft.azure.sdk.iot.device.Message;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 
 public class MainActivity extends AppCompatActivity {
@@ -46,9 +52,14 @@ public class MainActivity extends AppCompatActivity {
     private int receiptsConfirmedCount = 0;
     private int sendFailuresCount = 0;
     private int msgReceivedCount = 0;
+    private int sendMessagesInterval = 5000;
 
     private final Handler handler = new Handler();
     private Thread sendThread;
+
+    private static final int METHOD_SUCCESS = 200;
+    public static final int METHOD_THROWS = 403;
+    private static final int METHOD_NOT_DEFINED = 404;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -69,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
         btnStop.setEnabled(false);
     }
 
-    public void btnStopOnClick(View v)
+    private void stop()
     {
         new Thread(new Runnable() {
             public void run()
@@ -87,12 +98,17 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }).start();
+    }
+
+    public void btnStopOnClick(View v)
+    {
+        stop();
 
         btnStart.setEnabled(true);
         btnStop.setEnabled(false);
     }
 
-    public void btnStartOnClick(View v)
+    private void start()
     {
         sendThread = new Thread(new Runnable() {
             public void run()
@@ -103,7 +119,7 @@ public class MainActivity extends AppCompatActivity {
                     for(;;)
                     {
                         sendMessages();
-                        Thread.sleep(5000);
+                        Thread.sleep(sendMessagesInterval);
                     }
                 }
                 catch (InterruptedException e)
@@ -119,6 +135,11 @@ public class MainActivity extends AppCompatActivity {
         });
 
         sendThread.start();
+    }
+
+    public void btnStartOnClick(View v)
+    {
+        start();
 
         btnStart.setEnabled(false);
         btnStop.setEnabled(true);
@@ -141,6 +162,17 @@ public class MainActivity extends AppCompatActivity {
             System.out.println(lastException);
             btnStart.setEnabled(true);
             btnStop.setEnabled(false);
+        }
+    };
+
+    final Runnable methodNotificationRunnable = new Runnable() {
+        public void run() {
+            Context context = getApplicationContext();
+            CharSequence text = "Set Send Messages Interval to " + sendMessagesInterval + "ms";
+            int duration = Toast.LENGTH_LONG;
+
+            Toast toast = Toast.makeText(context, text, duration);
+            toast.show();
         }
     };
 
@@ -175,6 +207,7 @@ public class MainActivity extends AppCompatActivity {
             client.open();
             MessageCallback callback = new MessageCallback();
             client.setMessageCallback(callback, null);
+            client.subscribeToDeviceMethod(new SampleDeviceMethodCallback(), getApplicationContext(), new DeviceMethodStatusCallBack(), null);
         }
         catch (Exception e2)
         {
@@ -218,6 +251,58 @@ public class MainActivity extends AppCompatActivity {
             txtMsgsReceivedVal.setText(Integer.toString(msgReceivedCount));
             txtLastMsgReceivedVal.setText("[" + new String(msg.getBytes(), Message.DEFAULT_IOTHUB_MESSAGE_CHARSET) + "]");
             return IotHubMessageResult.COMPLETE;
+        }
+    }
+
+    private int method_setSendMessagesInterval(Object methodData) throws UnsupportedEncodingException, JSONException
+    {
+        String payload = new String((byte[])methodData, "UTF-8").replace("\"", "");
+        JSONObject obj = new JSONObject(payload);
+        sendMessagesInterval = obj.getInt("sendInterval");
+        handler.post(methodNotificationRunnable);
+        return METHOD_SUCCESS;
+}
+
+    private int method_default(Object data)
+    {
+        System.out.println("invoking default method for this device");
+        // Insert device specific code here
+        return METHOD_NOT_DEFINED;
+    }
+
+    protected class DeviceMethodStatusCallBack implements IotHubEventCallback
+    {
+        public void execute(IotHubStatusCode status, Object context)
+        {
+            System.out.println("IoT Hub responded to device method operation with status " + status.name());
+        }
+    }
+
+    protected class SampleDeviceMethodCallback implements com.microsoft.azure.sdk.iot.device.DeviceTwin.DeviceMethodCallback
+    {
+        @Override
+        public DeviceMethodData call(String methodName, Object methodData, Object context)
+        {
+            DeviceMethodData deviceMethodData ;
+            try {
+                switch (methodName) {
+                    case "setSendMessagesInterval": {
+                        int status = method_setSendMessagesInterval(methodData);
+                        deviceMethodData = new DeviceMethodData(status, "executed " + methodName);
+                        break;
+                    }
+                    default: {
+                        int status = method_default(methodData);
+                        deviceMethodData = new DeviceMethodData(status, "executed " + methodName);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                int status = METHOD_THROWS;
+                deviceMethodData = new DeviceMethodData(status, "Method Throws " + methodName);
+            }
+            return deviceMethodData;
         }
     }
 }
