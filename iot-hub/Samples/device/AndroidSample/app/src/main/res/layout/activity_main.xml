@@ -111,7 +111,7 @@
         android:layout_height="25dp"
         android:layout_alignStart="@+id/txtMsgsSent"
         android:layout_below="@+id/txtMsgsReceived"
-        android:text="Last Temperature Reading (C):"
+        android:text="Last Temp. Reading (C):"
         android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
 
     <TextView
@@ -130,7 +130,7 @@
         android:layout_height="25dp"
         android:layout_alignStart="@+id/txtMsgsSent"
         android:layout_below="@+id/txtLastTemp"
-        android:text="Last Humidity Reading (%)"
+        android:text="Last Humidity Reading (%):"
         android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
 
     <TextView
@@ -161,7 +161,12 @@
         android:gravity="center_vertical"
         android:text="{none}"
         android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-        android:textColor="@android:color/holo_blue_dark" />
+        android:textColor="@android:color/holo_blue_dark"
+        android:maxLines="1"
+        android:autoSizeTextType="uniform"
+        android:autoSizeMinTextSize="12sp"
+        android:autoSizeMaxTextSize="14sp"
+        android:autoSizeStepGranularity="2sp"/>
 
     <TextView
         android:id="@+id/txtLastMsgReceived"
@@ -181,6 +186,12 @@
         android:gravity="center_vertical"
         android:text="{none}"
         android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-        android:textColor="@android:color/holo_blue_dark" />
+        android:textColor="@android:color/holo_blue_dark"
+        android:maxLines="1"
+        android:autoSizeTextType="uniform"
+        android:autoSizeMinTextSize="12sp"
+        android:autoSizeMaxTextSize="14sp"
+        android:autoSizeStepGranularity="2sp"/>
+
 
 </RelativeLayout>
