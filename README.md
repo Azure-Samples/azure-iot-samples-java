@@ -8,6 +8,9 @@ author: azure-iot-sdks
 
 azure-iot-samples-java provides a set of easy-to-understand, continuously-tested samples for connecting to Azure IoT Hub via Azure/azure-iot-sdk-java.
 
+## Need support?
+If you run into any issues with these samples, please file an issue on our main repository [azure-iot-sdk-java](https://github.com/Azure/azure-iot-sdk-java) for faster turnaround.
+
 ## Prerequisites
 
 - Java SE 8 or later on your development machine.  You can download Java for multiple platforms from [Oracle](http://www.oracle.com/technetwork/java/javase/downloads/index.html).  You can verify the current version of Java on your development machine using 'java --version'.
