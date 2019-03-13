@@ -109,7 +109,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         txtMsgsSentVal = findViewById(R.id.txtMsgsSentVal);
 
-        txtLastLightVal = findViewById(R.id.txtLastLight);
+        txtLastLightVal = findViewById(R.id.txtLastLightVal);
         txtLastMsgSentVal = findViewById(R.id.txtLastMsgSentVal);
         txtLastMsgReceivedVal = findViewById(R.id.txtLastMsgReceivedVal);
 
