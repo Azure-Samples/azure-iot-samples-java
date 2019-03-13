@@ -1,6 +1,10 @@
 package com.microsoft.azure.iot.sdk.samples.androidsample;
 
 import android.content.Context;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AlertDialog;
@@ -28,17 +32,19 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements SensorEventListener {
 
     private final String connString = BuildConfig.DeviceConnectionString;;
 
-    private double temperature;
-    private double humidity;
+    private float intensityOfLight;
+
     private String msgStr;
     private Message sendMessage;
     private String lastException;
 
     private DeviceClient client;
+    private SensorManager sensorManager;
+    private Sensor light;
 
     IotHubClientProtocol protocol = IotHubClientProtocol.MQTT;
 
@@ -46,8 +52,7 @@ public class MainActivity extends AppCompatActivity {
     Button btnStop;
 
     TextView txtMsgsSentVal;
-    TextView txtLastTempVal;
-    TextView txtLastHumidityVal;
+    TextView txtLastLightVal;
     TextView txtLastMsgSentVal;
     TextView txtLastMsgReceivedVal;
 
@@ -65,18 +70,46 @@ public class MainActivity extends AppCompatActivity {
     private static final int METHOD_NOT_DEFINED = 404;
 
     @Override
+    public final void onAccuracyChanged(Sensor sensor, int accuracy) {
+        // Do something here if sensor accuracy changes.
+    }
+
+    @Override
+    public final void onSensorChanged(SensorEvent event) {
+        intensityOfLight = event.values[0];
+        // Do something with this sensor data.
+    }
+
+    @Override
+    protected void onResume() {
+        // Register a listener for the sensor.
+        super.onResume();
+        sensorManager.registerListener(this, light, SensorManager.SENSOR_DELAY_NORMAL);
+    }
+
+    @Override
+    protected void onPause() {
+        // Be sure to unregister the sensor when the activity pauses.
+        super.onPause();
+        sensorManager.unregisterListener(this);
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        light = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
+
 
         btnStart = findViewById(R.id.btnStart);
         btnStop = findViewById(R.id.btnStop);
 
         txtMsgsSentVal = findViewById(R.id.txtMsgsSentVal);
 
-        txtLastTempVal = findViewById(R.id.txtLastTempVal);
-        txtLastHumidityVal = findViewById(R.id.txtLastHumidityVal);
+        txtLastLightVal = findViewById(R.id.txtLastLight);
         txtLastMsgSentVal = findViewById(R.id.txtLastMsgSentVal);
         txtLastMsgReceivedVal = findViewById(R.id.txtLastMsgReceivedVal);
 
@@ -150,8 +183,7 @@ public class MainActivity extends AppCompatActivity {
 
     final Runnable updateRunnable = new Runnable() {
         public void run() {
-            txtLastTempVal.setText(String.format("%.2f",temperature));
-            txtLastHumidityVal.setText(String.format("%.2f",humidity));
+            txtLastLightVal.setText(String.valueOf(intensityOfLight));
             txtMsgsSentVal.setText(Integer.toString(msgSentCount));
             txtLastMsgSentVal.setText("[" + new String(sendMessage.getBytes(), Message.DEFAULT_IOTHUB_MESSAGE_CHARSET) + "]");
         }
@@ -181,13 +213,11 @@ public class MainActivity extends AppCompatActivity {
 
     private void sendMessages()
     {
-        temperature = 20.0 + Math.random() * 10;
-        humidity = 30.0 + Math.random() * 20;
-        msgStr = "\"temperature\":" + String.format("%.2f",temperature) + ", \"humidity\":" + String.format("%.2f",humidity);
+        msgStr = "\"light\":" + intensityOfLight;
         try
         {
             sendMessage = new Message(msgStr);
-            sendMessage.setProperty("temperatureAlert", temperature > 28 ? "true" : "false");
+            sendMessage.setProperty("lightIntensityAlert", intensityOfLight > 28 ? "true" : "false");
             sendMessage.setMessageId(java.util.UUID.randomUUID().toString());
             System.out.println("Message Sent: " + msgStr);
             EventCallback eventCallback = new EventCallback();

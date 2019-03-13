@@ -106,12 +106,12 @@
         android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
 
     <TextView
-        android:id="@+id/txtLastTemp"
+        android:id="@+id/txtLastLight"
         android:layout_width="wrap_content"
         android:layout_height="25dp"
-        android:layout_alignStart="@+id/txtMsgsSent"
         android:layout_below="@+id/txtMsgsReceived"
-        android:text="Last Temp. Reading (C):"
+        android:layout_alignStart="@+id/txtMsgsSent"
+        android:text="Last Light Reading (lumens):"
         android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
 
     <TextView
@@ -128,10 +128,11 @@
         android:id="@+id/txtLastHumidity"
         android:layout_width="wrap_content"
         android:layout_height="25dp"
+        android:layout_below="@+id/txtLastLight"
         android:layout_alignStart="@+id/txtMsgsSent"
-        android:layout_below="@+id/txtLastTemp"
         android:text="Last Humidity Reading (%):"
-        android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
+        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+        android:visibility="gone" />
 
     <TextView
         android:id="@+id/txtLastHumidityVal"
