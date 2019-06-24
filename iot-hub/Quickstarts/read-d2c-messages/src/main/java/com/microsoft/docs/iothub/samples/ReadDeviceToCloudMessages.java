@@ -33,9 +33,9 @@ public class ReadDeviceToCloudMessages {
   // az iot hub show --query properties.eventHubEndpoints.events.path --name {your IoT Hub name}
   private static final String eventHubsCompatiblePath = "{your Event Hubs compatible name}";
 
-  // az iot hub policy show --name iothubowner --query primaryKey --hub-name {your IoT Hub name}
-  private static final String iotHubSasKey = "{your iothubowner primary key}";
-  private static final String iotHubSasKeyName = "iothubowner";
+  // az iot hub policy show --name service --query primaryKey --hub-name {your IoT Hub name}
+  private static final String iotHubSasKey = "{your service primary key}";
+  private static final String iotHubSasKeyName = "service";
 
   // Track all the PartitionReciever instances created.
   private static ArrayList<PartitionReceiver> receivers = new ArrayList<PartitionReceiver>();
