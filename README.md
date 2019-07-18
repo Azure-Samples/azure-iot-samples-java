@@ -1,7 +1,11 @@
 ---
-services: iot-hub 
-platforms: java
-author: azure-iot-sdks
+page_type: sample
+languages:
+- java
+products:
+- azure
+- azure-iot-hub
+description: "A set of easy-to-understand, continuously-tested samples for connecting to Azure IoT Hub via Azure/azure-iot-sdk-java"
 ---
 
 # Azure IoT Samples for Java
