@@ -20,6 +20,7 @@ import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.functions.Action;
 import io.reactivex.rxjava3.functions.BooleanSupplier;
@@ -53,19 +54,19 @@ public class EnvironmentalSensor extends AbstractDigitalTwinInterfaceClient {
         this.uiHandler = uiHandler;
     }
 
-    public Flowable<DigitalTwinClientResult> updateTemperatureAsync(double temperature) throws IOException {
+    public Single<DigitalTwinClientResult> updateTemperatureAsync(double temperature) throws IOException {
         log.debug("Temperature changed to {}.", temperature);
         uiHandler.updateTemperature(temperature);
         return sendTelemetryAsync(TELEMETRY_NAME_TEMPERATURE, serialize(temperature));
     }
 
-    public Flowable<DigitalTwinClientResult> updateHumidityAsync(double humidity) throws IOException {
+    public Single<DigitalTwinClientResult> updateHumidityAsync(double humidity) throws IOException {
         log.debug("Humidity changed to {}.", humidity);
         uiHandler.updateHumidity(humidity);
         return sendTelemetryAsync(TELEMETRY_NAME_HUMIDITY, serialize(humidity));
     }
 
-    public Flowable<DigitalTwinClientResult> updateStatusAsync(final boolean state) {
+    public Single<DigitalTwinClientResult> updateStatusAsync(final boolean state) {
         log.debug("EnvironmentalSensor state is changed to {}.", state);
         uiHandler.updateOnoff(state);
         DigitalTwinReportProperty reportProperty = DigitalTwinReportProperty.builder()
@@ -79,16 +80,16 @@ public class EnvironmentalSensor extends AbstractDigitalTwinInterfaceClient {
     public void onRegistered() {
         super.onRegistered();
         final Random random = new Random();
-        Disposable temperatureReportProcess= Flowable.just(random)
+        Disposable temperatureReportProcess= Single.just(random)
                 .delay(10, SECONDS)
                 .map(new Function<Random, Double>() {
                     @Override
                     public Double apply(Random random) {
                         return random.nextDouble() * 100;
                     }
-                }).flatMap(new Function<Double, Flowable<DigitalTwinClientResult>>() {
+                }).flatMap(new Function<Double, Single<DigitalTwinClientResult>>() {
                     @Override
-                    public Flowable<DigitalTwinClientResult> apply(Double temperature) throws IOException {
+                    public Single<DigitalTwinClientResult> apply(Double temperature) throws IOException {
                         return updateTemperatureAsync(temperature);
                     }
                 }).repeat()
@@ -103,16 +104,16 @@ public class EnvironmentalSensor extends AbstractDigitalTwinInterfaceClient {
                         log.debug("Update temperature failed.", throwable);
                     }
                 });
-        Disposable humidityReportProcess = Flowable.just(random)
+        Disposable humidityReportProcess = Single.just(random)
                 .delay(10, SECONDS)
                 .map(new Function<Random, Double>() {
                     @Override
                     public Double apply(Random random) {
                         return random.nextDouble() * 100;
                     }
-                }).flatMap(new Function<Double, Flowable<DigitalTwinClientResult>>() {
+                }).flatMap(new Function<Double, Single<DigitalTwinClientResult>>() {
                     @Override
-                    public Flowable<DigitalTwinClientResult> apply(Double humidity) throws IOException {
+                    public Single<DigitalTwinClientResult> apply(Double humidity) throws IOException {
                         return updateHumidityAsync(humidity);
                     }
                 }).repeat()
@@ -193,13 +194,19 @@ public class EnvironmentalSensor extends AbstractDigitalTwinInterfaceClient {
                 payload
         );
         try {
+            Consumer<DigitalTwinClientResult> onSuccess = new Consumer<DigitalTwinClientResult>() {
+                @Override
+                public void accept(DigitalTwinClientResult result) {
+                    log.debug("Command {} result is {}.", commandName, result);
+                }
+            };
             if (COMMAND_TURN_ON.equals(commandName)) {
-                updateStatusAsync(true);
+                updateStatusAsync(true).subscribe(onSuccess);
                 return DigitalTwinCommandResponse.builder()
                                                  .status(STATUS_CODE_COMPLETED)
                                                  .build();
             } else if (COMMAND_TURN_OFF.equals(commandName)) {
-                updateStatusAsync(false);
+                updateStatusAsync(false).subscribe(onSuccess);
                 return DigitalTwinCommandResponse.builder()
                                                  .status(STATUS_CODE_COMPLETED)
                                                  .build();
@@ -213,7 +220,7 @@ public class EnvironmentalSensor extends AbstractDigitalTwinInterfaceClient {
                                                  .payload(createBlinkResponse(responsePayload))
                                                  .build();
             } else if (COMMAND_RUN_DIAGNOSTICS.equals(commandName)) {
-                runDiagnosticsAsync(requestId);
+                runDiagnosticsAsync(requestId).subscribe(onSuccess);
                 return DigitalTwinCommandResponse.builder()
                                                  .status(STATUS_CODE_COMPLETED)
                                                  .build();
@@ -236,7 +243,7 @@ public class EnvironmentalSensor extends AbstractDigitalTwinInterfaceClient {
     private Flowable<DigitalTwinClientResult> runDiagnosticsAsync(final String requestId) {
         log.debug("Starting diagnostics...");
         final AtomicInteger percentage = new AtomicInteger();
-        return Flowable.just(requestId)
+        return Single.just(requestId)
                 .map(new Function<String, DigitalTwinAsyncCommandUpdate>() {
                     @Override
                     public DigitalTwinAsyncCommandUpdate apply(String s) {
@@ -250,9 +257,9 @@ public class EnvironmentalSensor extends AbstractDigitalTwinInterfaceClient {
                                 .payload(progressMessage)
                                 .build();
                     }
-                }).flatMap(new Function<DigitalTwinAsyncCommandUpdate, Flowable<DigitalTwinClientResult>>() {
+                }).flatMap(new Function<DigitalTwinAsyncCommandUpdate, Single<DigitalTwinClientResult>>() {
                     @Override
-                    public Flowable<DigitalTwinClientResult> apply(DigitalTwinAsyncCommandUpdate asyncCommandUpdate) {
+                    public Single<DigitalTwinClientResult> apply(DigitalTwinAsyncCommandUpdate asyncCommandUpdate) {
                         return updateAsyncCommandStatusAsync(asyncCommandUpdate);
                     }
                 }).delay(10, SECONDS)
