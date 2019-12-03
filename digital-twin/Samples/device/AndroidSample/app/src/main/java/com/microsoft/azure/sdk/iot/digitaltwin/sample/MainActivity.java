@@ -17,11 +17,17 @@ import com.microsoft.azure.sdk.iot.device.transport.IotHubConnectionStatus;
 import com.microsoft.azure.sdk.iot.digitaltwin.device.DigitalTwinClientResult;
 import com.microsoft.azure.sdk.iot.digitaltwin.device.DigitalTwinDeviceClient;
 
+import org.apache.commons.io.IOUtils;
+
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+
 import io.reactivex.rxjava3.functions.Consumer;
 import lombok.extern.slf4j.Slf4j;
 
 import static com.microsoft.azure.sdk.iot.device.IotHubClientProtocol.MQTT;
 import static com.microsoft.azure.sdk.iot.digitaltwin.sample.BuildConfig.DIGITAL_TWIN_CONNECTION_STRING;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.asList;
 
 @Slf4j
@@ -29,6 +35,7 @@ public class MainActivity extends AppCompatActivity implements UiHandler {
 
     private static final String DCM_ID = "urn:azureiot:samplemodel:1";
     private static final String ENVIRONMENTAL_SENSOR_INTERFACE_INSTANCE_NAME = "sensor";
+    private static final String MODEL_DEFINITION_INTERFACE_NAME = "urn_azureiot_ModelDiscovery_ModelDefinition";
     private TextView nameView;
     private TextView brightnessView;
     private TextView temperatureView;
@@ -73,8 +80,13 @@ public class MainActivity extends AppCompatActivity implements UiHandler {
                     .totalMemory(16e9)
                     .totalStorage(1e12)
                     .build();
+            InputStream environmentalSensorModelDefinition = getAssets().open("EnvironmentalSensor.interface.json");
+            final ModelDefinition modelDefinition = ModelDefinition.builder()
+                    .digitalTwinInterfaceInstanceName(MODEL_DEFINITION_INTERFACE_NAME)
+                    .environmentalSensorModelDefinition(IOUtils.toString(environmentalSensorModelDefinition, UTF_8))
+                    .build();
             registrationView.setText("Registering...");
-            digitalTwinDeviceClient.registerInterfacesAsync(DCM_ID, asList(deviceInformation, environmentalSensor)).subscribe(new Consumer<DigitalTwinClientResult>() {
+            digitalTwinDeviceClient.registerInterfacesAsync(DCM_ID, asList(deviceInformation, environmentalSensor, modelDefinition)).subscribe(new Consumer<DigitalTwinClientResult>() {
                 @Override
                 public void accept(DigitalTwinClientResult digitalTwinClientResult) {
                     log.debug("Register interfaces {}.", digitalTwinClientResult);
