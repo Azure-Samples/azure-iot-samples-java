@@ -10,7 +10,7 @@ This project contains a sample implementation of a simulated environmental senso
   * How to respond to command invocations
   * How to respond to property updates
   
-For Android, please see [here](./Android)
+For Android, please see [here](../AndroidSample)
 ## How to run the sample
 
 ### Setup environment
@@ -47,5 +47,5 @@ interface, and then will sit idle and wait for updates from the cloud such as co
 Note that the DigitalTwinClient depends on the DeviceClient class from the com.microsoft.azure.sdk.iot.iot-device-client library to communicate with the hub. The sample shows how to compose these two together.
 
 [lnk-setup-iot-hub]: https://aka.ms/howtocreateazureiothub
-[devbox-setup]: ../doc/java-devbox-setup.md
-[intellij-setup]: ../doc/building_sdk.md
+[devbox-setup]: https://github.com/Azure/azure-iot-sdk-java/tree/preview/digital-twin/doc/java-devbox-setup.md
+[intellij-setup]: https://github.com/Azure/azure-iot-sdk-java/tree/preview/digital-twin/doc/building_sdk.md

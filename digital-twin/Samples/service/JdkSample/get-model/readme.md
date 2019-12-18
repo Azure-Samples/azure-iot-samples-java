@@ -110,5 +110,5 @@ Successfully retrieved the model, the definition is:
 ```
 
 [lnk-setup-iot-hub]: https://aka.ms/howtocreateazureiothub
-[devbox-setup]: ../../../doc/java-devbox-setup.md
-[intellij-setup]: ../../../doc/building_sdk.md
+[devbox-setup]: https://github.com/Azure/azure-iot-sdk-java/tree/preview/digital-twin/doc/java-devbox-setup.md
+[intellij-setup]: https://github.com/Azure/azure-iot-sdk-java/tree/preview/digital-twin/doc/building_sdk.mdlding_sdk.md
