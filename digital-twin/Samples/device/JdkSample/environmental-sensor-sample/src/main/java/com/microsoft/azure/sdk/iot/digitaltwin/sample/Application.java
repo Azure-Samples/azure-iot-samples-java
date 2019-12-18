@@ -20,7 +20,7 @@ import static java.util.Arrays.asList;
 
 @Slf4j
 public class Application {
-    private static final String DIGITAL_TWIN_DEVICE_CONNECTION_STRING = "HostName=davilu-digitaltwin-test.azure-devices.net;DeviceId=davidlu-useonly-test-device;SharedAccessKey=XP4I6VxL8tlK++M6P+ujd82DgMax1JWXY2BivWIXcY8="; // System.getenv("DIGITAL_TWIN_DEVICE_CONNECTION_STRING");
+    private static final String DIGITAL_TWIN_DEVICE_CONNECTION_STRING = System.getenv("DIGITAL_TWIN_DEVICE_CONNECTION_STRING");
     private static final String DCM_ID = "urn:java_sdk_sample:sample_device:1";
     private static final String ENVIRONMENTAL_SENSOR_INTERFACE_INSTANCE_NAME = "environmentalSensor";
     private static final String MODEL_DEFINITION_INTERFACE_NAME = "urn_azureiot_ModelDiscovery_ModelDefinition";
