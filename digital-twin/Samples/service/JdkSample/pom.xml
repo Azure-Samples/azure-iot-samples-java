@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.microsoft.azure.sdk.iot.service.samples</groupId>
-    <artifactId>iot-sdk-java-digital-twin-service-samples</artifactId>
+    <artifactId>digital-twin-service-samples</artifactId>
     <version>1.0.0</version>
     <packaging>pom</packaging>
 	<url>https://github.com/Azure-Samples/azure-iot-samples-java</url>
@@ -47,9 +47,9 @@
 		<ms-rest-client-version>1.6.15</ms-rest-client-version>
         <azure-eventhubs-version>3.0.0</azure-eventhubs-version>
         <project-service-samples-version>1.0.0</project-service-samples-version>
-        <provisioning-device-client-version>LATEST </provisioning-device-client-version>
-        <digital-twin-device-client-version>LATEST </digital-twin-device-client-version>
-        <digital-twin-service-client-version>LATEST </digital-twin-service-client-version>
+        <provisioning-device-client-version>LATEST</provisioning-device-client-version>
+        <digital-twin-device-client-version>LATEST</digital-twin-device-client-version>
+        <digital-twin-service-client-version>LATEST</digital-twin-service-client-version>
     </properties>
     <dependencies>
 		<dependency>
@@ -60,7 +60,7 @@
         </dependency>
         <dependency>
             <groupId>com.microsoft.azure.sdk.iot</groupId>
-            <artifactId>iot-sdk-java-digital-twin-service-preview</artifactId>
+            <artifactId>digital-twin-service-client-preview</artifactId>
             <version>${digital-twin-service-client-version}</version>
         </dependency>
         <dependency>
