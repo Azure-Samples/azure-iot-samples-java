@@ -29,14 +29,14 @@ In order to run this sample, you will need an IoT Hub. You will also need at lea
 This device must also be registered to implement the interface whose async command you want to invoke, and the device
 must be online to receive the command invocation.
 
-To see sample code that demonstrates how to register a device to implement an interface and to listen for commands, see the device sample [here](../device-samples)
+To see sample code that demonstrates how to register a device to implement an interface and to listen for commands, see the device sample [here][jdk-device-samples]
 
 ### Run the sample
 
 From the base digital-twin folder in this repo, run the following command:
 
 ```sh
-mvn clean install -DskipTests
+mvn clean install
 ```
 
 This will construct the jar file that you will need to run this sample, which contains all dependencies already included within the invoke-digital-twin-async-command-with-deps.jar file located in the target folder of the sample.
@@ -99,3 +99,4 @@ Async command has finished, enter any key to finish
 [lnk-setup-iot-hub]: https://aka.ms/howtocreateazureiothub
 [devbox-setup]: https://github.com/Azure/azure-iot-sdk-java/tree/preview/digital-twin/doc/java-devbox-setup.md
 [intellij-setup]: https://github.com/Azure/azure-iot-sdk-java/tree/preview/digital-twin/doc/building_sdk.md
+[jdk-device-samples]: https://github.com/Azure-Samples/azure-iot-samples-java/tree/master/digital-twin/Samples/device/JdkSample

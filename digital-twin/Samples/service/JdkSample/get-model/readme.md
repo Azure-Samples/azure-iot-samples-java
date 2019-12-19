@@ -26,7 +26,7 @@ In order to run this sample, you will need an IoT Hub. You will also need at lea
 From the base digital-twin folder in this repo, run the following command:
 
 ```sh
-mvn clean install -DskipTests
+mvn clean install
 ```
 
 This will construct the jar file that you will need to run this sample, which contains all dependencies already included within the get-model-with-deps.jar file located in the target folder of the sample.
