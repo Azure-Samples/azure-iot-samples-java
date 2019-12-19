@@ -21,7 +21,8 @@
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <mainClass>com.microsoft.azure.sdk.iot.digitaltwin.sample.UpdateDigitalTwinSample</mainClass>
+                            <mainClass>com.microsoft.azure.sdk.iot.digitaltwin.sample.UpdateDigitalTwinSample
+                            </mainClass>
                         </manifest>
                     </archive>
                 </configuration>

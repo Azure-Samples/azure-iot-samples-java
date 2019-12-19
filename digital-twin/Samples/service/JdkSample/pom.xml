@@ -7,7 +7,7 @@
     <artifactId>digital-twin-service-samples</artifactId>
     <version>1.0.0</version>
     <packaging>pom</packaging>
-	<url>https://github.com/Azure-Samples/azure-iot-samples-java</url>
+    <url>https://github.com/Azure-Samples/azure-iot-samples-java</url>
     <licenses>
         <license>
             <name>MIT License</name>
@@ -34,9 +34,9 @@
         <module>invoke-digital-twin-async-command</module>
     </modules>
     <properties>
-		<java-sdk-device-version>1.7</java-sdk-device-version>
+        <java-sdk-device-version>1.7</java-sdk-device-version>
         <java-sdk-service-version>1.8</java-sdk-service-version>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <lombok-version>1.18.4</lombok-version>
         <maven-compiler-plugin-version>3.8.1</maven-compiler-plugin-version>
         <maven-source-plugin-version>3.1.0</maven-source-plugin-version>
@@ -44,7 +44,7 @@
         <maven-jar-plugin-version>3.1.0</maven-jar-plugin-version>
         <build-helper-version>3.0.0</build-helper-version>
         <slf4j-version>1.7.25</slf4j-version>
-		<ms-rest-client-version>1.6.15</ms-rest-client-version>
+        <ms-rest-client-version>1.6.15</ms-rest-client-version>
         <azure-eventhubs-version>3.0.0</azure-eventhubs-version>
         <project-service-samples-version>1.0.0</project-service-samples-version>
         <provisioning-device-client-version>LATEST</provisioning-device-client-version>
@@ -52,7 +52,7 @@
         <digital-twin-service-client-version>LATEST</digital-twin-service-client-version>
     </properties>
     <dependencies>
-		<dependency>
+        <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>${lombok-version}</version>
@@ -68,7 +68,7 @@
             <artifactId>slf4j-log4j12</artifactId>
             <version>${slf4j-version}</version>
         </dependency>
-		<dependency>
+        <dependency>
             <groupId>com.microsoft.rest</groupId>
             <artifactId>client-runtime</artifactId>
             <version>${ms-rest-client-version}</version>
@@ -86,7 +86,7 @@
                     <target>${java-sdk-service-version}</target>
                 </configuration>
             </plugin>
-			<plugin>
+            <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
                 <version>${build-helper-version}</version>

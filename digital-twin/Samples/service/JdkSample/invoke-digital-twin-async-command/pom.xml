@@ -28,7 +28,9 @@
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <mainClass>com.microsoft.azure.sdk.iot.digitaltwin.sample.InvokeDigitalTwinAsyncCommandSample</mainClass>
+                            <mainClass>
+                                com.microsoft.azure.sdk.iot.digitaltwin.sample.InvokeDigitalTwinAsyncCommandSample
+                            </mainClass>
                         </manifest>
                     </archive>
                 </configuration>
