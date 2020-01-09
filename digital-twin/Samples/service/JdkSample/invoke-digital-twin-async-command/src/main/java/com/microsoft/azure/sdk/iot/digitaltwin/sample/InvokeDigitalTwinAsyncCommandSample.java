@@ -58,7 +58,7 @@ public class InvokeDigitalTwinAsyncCommandSample {
         else
         {
             log.info("The returned PAYLOAD was ");
-            log.info(toPrettyFormat(digitalTwinCommandResponse.getPayload()));
+            log.info(digitalTwinCommandResponse.getPayload());
         }
 
         listenForAsyncCommandUpdates(digitalTwinCommandResponse.getRequestId());
@@ -149,11 +149,5 @@ public class InvokeDigitalTwinAsyncCommandSample {
 
     private static boolean isNullOrEmpty(String s) {
         return s == null || s.length() == 0;
-    }
-
-    public static String toPrettyFormat(String jsonString) throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
-        Object json = mapper.readValue(jsonString, Object.class);
-        return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(json);
     }
 }
