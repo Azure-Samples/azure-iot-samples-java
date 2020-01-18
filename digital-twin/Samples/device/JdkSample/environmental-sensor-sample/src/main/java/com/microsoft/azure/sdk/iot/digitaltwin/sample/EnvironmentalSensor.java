@@ -3,7 +3,7 @@
 
 package com.microsoft.azure.sdk.iot.digitaltwin.sample;
 
-import com.microsoft.azure.sdk.iot.digitaltwin.device.AbstractDigitalTwinInterfaceClient;
+import com.microsoft.azure.sdk.iot.digitaltwin.device.AbstractDigitalTwinComponent;
 import com.microsoft.azure.sdk.iot.digitaltwin.device.DigitalTwinClientResult;
 import com.microsoft.azure.sdk.iot.digitaltwin.device.model.DigitalTwinAsyncCommandUpdate;
 import com.microsoft.azure.sdk.iot.digitaltwin.device.model.DigitalTwinCommandRequest;
@@ -33,9 +33,9 @@ import static java.util.Collections.singletonList;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 @Slf4j
-public class EnvironmentalSensor extends AbstractDigitalTwinInterfaceClient {
+public class EnvironmentalSensor extends AbstractDigitalTwinComponent {
     public static final String ENVIRONMENTAL_SENSOR_INTERFACE_ID = "urn:java_sdk_sample:EnvironmentalSensor:1";
-    private static final String COMMAND_NOT_HANDLED_MESSAGE_PATTERN = "\"Command[%s] is not handled for interface[%s].\"";
+    private static final String COMMAND_NOT_HANDLED_MESSAGE_PATTERN = "\"Command[%s] is not handled for component[%s].\"";
     private static final String TELEMETRY_NAME_TEMPERATURE = "temp";
     private static final String TELEMETRY_NAME_HUMIDITY = "humid";
     private static final String COMMAND_TURN_ON = "turnon";
@@ -46,8 +46,8 @@ public class EnvironmentalSensor extends AbstractDigitalTwinInterfaceClient {
     private static final String PROPERTY_NAME = "name";
     private static final String PROPERTY_BRIGHTNESS = "brightness";
 
-    public EnvironmentalSensor(@NonNull String digitalTwinInterfaceInstanceName) {
-        super(digitalTwinInterfaceInstanceName, ENVIRONMENTAL_SENSOR_INTERFACE_ID);
+    public EnvironmentalSensor(@NonNull String digitalTwinComponentName) {
+        super(digitalTwinComponentName, ENVIRONMENTAL_SENSOR_INTERFACE_ID);
     }
 
     public Single<DigitalTwinClientResult> updateTemperatureAsync(double temperature) throws IOException {
@@ -70,8 +70,8 @@ public class EnvironmentalSensor extends AbstractDigitalTwinInterfaceClient {
     }
 
     @Override
-    public void onRegistered() {
-        super.onRegistered();
+    public void ready() {
+        super.ready();
         final Random random = new Random();
         Disposable temperatureReportProcess = Single.just(random)
                                                     .delay(10, SECONDS)

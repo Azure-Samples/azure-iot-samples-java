@@ -6,7 +6,7 @@ package com.microsoft.azure.sdk.iot.digitaltwin.sample;
 import com.fasterxml.jackson.databind.node.DoubleNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.fasterxml.jackson.databind.node.ValueNode;
-import com.microsoft.azure.sdk.iot.digitaltwin.device.AbstractDigitalTwinInterfaceClient;
+import com.microsoft.azure.sdk.iot.digitaltwin.device.AbstractDigitalTwinComponent;
 import com.microsoft.azure.sdk.iot.digitaltwin.device.DigitalTwinClientResult;
 import com.microsoft.azure.sdk.iot.digitaltwin.device.model.DigitalTwinReportProperty;
 
@@ -24,9 +24,9 @@ import lombok.extern.slf4j.Slf4j;
 import static com.microsoft.azure.sdk.iot.digitaltwin.device.serializer.JsonSerializer.isNotEmpty;
 
 @Slf4j
-public class DeviceInformation extends AbstractDigitalTwinInterfaceClient {
+public class DeviceInformation extends AbstractDigitalTwinComponent {
     private static final String DEVICE_INFORMATION_INTERFACE_ID = "urn:azureiot:DeviceManagement:DeviceInformation:1";
-    private static final String DEVICE_INFORMATION_INTERFACE_INSTANCE = "deviceInformation";
+    private static final String DEVICE_INFORMATION_COMPONENT_NAME = "deviceInformation";
     private static final String PROPERTY_MANUFACTURER = "manufacturer";
     private static final String PROPERTY_MODEL = "model";
     private static final String PROPERTY_SOFTWARE_VERSION = "swVersion";
@@ -46,7 +46,7 @@ public class DeviceInformation extends AbstractDigitalTwinInterfaceClient {
             String processorManufacturer,
             Double totalStorage,
             Double totalMemory) {
-        super(DEVICE_INFORMATION_INTERFACE_INSTANCE, DEVICE_INFORMATION_INTERFACE_ID);
+        super(DEVICE_INFORMATION_COMPONENT_NAME, DEVICE_INFORMATION_INTERFACE_ID);
         this.properties = new HashMap<>();
         if (isNotEmpty(manufacturer)) {
             properties.put(PROPERTY_MANUFACTURER, TextNode.valueOf(manufacturer));
@@ -75,8 +75,8 @@ public class DeviceInformation extends AbstractDigitalTwinInterfaceClient {
     }
 
     @Override
-    protected void onRegistered() {
-        super.onRegistered();
+    protected void ready() {
+        super.ready();
         if (!properties.isEmpty()) {
             log.debug("Reporting device information...");
             List<DigitalTwinReportProperty> reportProperties = new ArrayList<>();

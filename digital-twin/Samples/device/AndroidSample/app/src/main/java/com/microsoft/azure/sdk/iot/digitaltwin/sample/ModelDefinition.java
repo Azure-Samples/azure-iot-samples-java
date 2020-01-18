@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.sdk.iot.digitaltwin.sample;
 
-import com.microsoft.azure.sdk.iot.digitaltwin.device.AbstractDigitalTwinInterfaceClient;
+import com.microsoft.azure.sdk.iot.digitaltwin.device.AbstractDigitalTwinComponent;
 import com.microsoft.azure.sdk.iot.digitaltwin.device.model.DigitalTwinCommandRequest;
 import com.microsoft.azure.sdk.iot.digitaltwin.device.model.DigitalTwinCommandResponse;
 import lombok.Builder;
@@ -13,7 +13,7 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class ModelDefinition extends AbstractDigitalTwinInterfaceClient {
+public class ModelDefinition extends AbstractDigitalTwinComponent {
     private static final String modelDefinitionInterfaceId = "urn:azureiot:ModelDiscovery:ModelDefinition:1";
 
     private final String environmentalSensorModelDefinition;
@@ -21,8 +21,8 @@ public class ModelDefinition extends AbstractDigitalTwinInterfaceClient {
     private static final String getModelDefinitionCommandName = "getModelDefinition";
 
     @Builder
-    private ModelDefinition(@NonNull String digitalTwinInterfaceInstanceName, @NonNull String environmentalSensorModelDefinition) {
-        super(digitalTwinInterfaceInstanceName, modelDefinitionInterfaceId);
+    private ModelDefinition(@NonNull String digitalTwinComponentName, @NonNull String environmentalSensorModelDefinition) {
+        super(digitalTwinComponentName, modelDefinitionInterfaceId);
         this.environmentalSensorModelDefinition = environmentalSensorModelDefinition;
     }
 
