@@ -3,7 +3,7 @@
 
 package com.microsoft.azure.sdk.iot.digitaltwin.sample;
 
-import com.microsoft.azure.sdk.iot.digitaltwin.device.AbstractDigitalTwinInterfaceClient;
+import com.microsoft.azure.sdk.iot.digitaltwin.device.AbstractDigitalTwinComponent;
 import com.microsoft.azure.sdk.iot.digitaltwin.device.DigitalTwinClientResult;
 import com.microsoft.azure.sdk.iot.digitaltwin.device.model.DigitalTwinAsyncCommandUpdate;
 import com.microsoft.azure.sdk.iot.digitaltwin.device.model.DigitalTwinCommandRequest;
@@ -30,12 +30,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static com.microsoft.azure.sdk.iot.digitaltwin.device.serializer.JsonSerializer.deserialize;
 import static com.microsoft.azure.sdk.iot.digitaltwin.device.serializer.JsonSerializer.serialize;
 import static java.util.Collections.singletonList;
+import static java.util.Collections.singletonMap;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 @Slf4j
-public class EnvironmentalSensor extends AbstractDigitalTwinInterfaceClient {
+public class EnvironmentalSensor extends AbstractDigitalTwinComponent {
     public static final String ENVIRONMENTAL_SENSOR_INTERFACE_ID = "urn:java_sdk_sample:EnvironmentalSensor:1";
-    private static final String COMMAND_NOT_HANDLED_MESSAGE_PATTERN = "\"Command[%s] is not handled for interface[%s].\"";
+    private static final String COMMAND_NOT_HANDLED_MESSAGE_PATTERN = "\"Command[%s] is not handled for component[%s].\"";
     private static final String TELEMETRY_NAME_TEMPERATURE = "temp";
     private static final String TELEMETRY_NAME_HUMIDITY = "humid";
     private static final String COMMAND_TURN_ON = "turnon";
@@ -46,18 +47,16 @@ public class EnvironmentalSensor extends AbstractDigitalTwinInterfaceClient {
     private static final String PROPERTY_NAME = "name";
     private static final String PROPERTY_BRIGHTNESS = "brightness";
 
-    public EnvironmentalSensor(@NonNull String digitalTwinInterfaceInstanceName) {
-        super(digitalTwinInterfaceInstanceName, ENVIRONMENTAL_SENSOR_INTERFACE_ID);
+    public EnvironmentalSensor(@NonNull String digitalTwinComponentName) {
+        super(digitalTwinComponentName, ENVIRONMENTAL_SENSOR_INTERFACE_ID);
     }
 
-    public Single<DigitalTwinClientResult> updateTemperatureAsync(double temperature) throws IOException {
-        log.info("Temperature changed to {}.", temperature);
-        return sendTelemetryAsync(TELEMETRY_NAME_TEMPERATURE, serialize(temperature));
-    }
-
-    public Single<DigitalTwinClientResult> updateHumidityAsync(double humidity) throws IOException {
-        log.info("Humidity changed to {}.", humidity);
-        return sendTelemetryAsync(TELEMETRY_NAME_HUMIDITY, serialize(humidity));
+    public Single<DigitalTwinClientResult> updateTemperatureAndHumidityAsync(double temperature, double humidity) throws IOException {
+        log.info("Temperature changed to {}, Humidity changed to {}.", temperature, humidity);
+        Map<String, Double> properties = new HashMap<>();
+        properties.put(TELEMETRY_NAME_TEMPERATURE, temperature);
+        properties.put(TELEMETRY_NAME_HUMIDITY, humidity);
+        return sendTelemetryAsync(serialize(properties));
     }
 
     public Single<DigitalTwinClientResult> updateStatusAsync(final boolean state) {
@@ -70,22 +69,19 @@ public class EnvironmentalSensor extends AbstractDigitalTwinInterfaceClient {
     }
 
     @Override
-    public void onRegistered() {
-        super.onRegistered();
+    public void ready() {
+        super.ready();
         final Random random = new Random();
-        Disposable temperatureReportProcess = Single.just(random)
+        Disposable reportProcess = Single.just(random)
                                                     .delay(10, SECONDS)
-                                                    .map(new Function<Random, Double>() {
+                                                    .flatMap(new Function<Random, Single<DigitalTwinClientResult>>() {
                                                         @Override
-                                                        public Double apply(Random random) {
-                                                            return random.nextDouble() * 100;
+                                                        public Single<DigitalTwinClientResult> apply(Random random) throws IOException {
+                                                            double temperature = random.nextDouble() * 100, humidity = random.nextDouble() * 100;
+                                                            return updateTemperatureAndHumidityAsync(temperature, humidity);
                                                         }
-                                                    }).flatMap(new Function<Double, Single<DigitalTwinClientResult>>() {
-                    @Override
-                    public Single<DigitalTwinClientResult> apply(Double temperature) throws IOException {
-                        return updateTemperatureAsync(temperature);
-                    }
-                }).repeat()
+                                                    })
+                                                    .repeat()
                                                     .subscribe(new Consumer<DigitalTwinClientResult>() {
                                                         @Override
                                                         public void accept(DigitalTwinClientResult result) {
@@ -97,31 +93,7 @@ public class EnvironmentalSensor extends AbstractDigitalTwinInterfaceClient {
                                                             log.debug("Update temperature failed.", throwable);
                                                         }
                                                     });
-        Disposable humidityReportProcess = Single.just(random)
-                                                 .delay(10, SECONDS)
-                                                 .map(new Function<Random, Double>() {
-                                                     @Override
-                                                     public Double apply(Random random) {
-                                                         return random.nextDouble() * 100;
-                                                     }
-                                                 }).flatMap(new Function<Double, Single<DigitalTwinClientResult>>() {
-                    @Override
-                    public Single<DigitalTwinClientResult> apply(Double humidity) throws IOException {
-                        return updateHumidityAsync(humidity);
-                    }
-                }).repeat()
-                                                 .subscribe(new Consumer<DigitalTwinClientResult>() {
-                                                     @Override
-                                                     public void accept(DigitalTwinClientResult result) {
-                                                         log.info("Update humidity was {}", result);
-                                                     }
-                                                 }, new Consumer<Throwable>() {
-                                                     @Override
-                                                     public void accept(Throwable throwable) {
-                                                         log.debug("Update humidity failed.", throwable);
-                                                     }
-                                                 });
-        log.debug("Once application quit, should dispose {} and {}.", temperatureReportProcess, humidityReportProcess);
+        log.debug("Once application quit, should dispose {}.", reportProcess);
     }
 
     @Override

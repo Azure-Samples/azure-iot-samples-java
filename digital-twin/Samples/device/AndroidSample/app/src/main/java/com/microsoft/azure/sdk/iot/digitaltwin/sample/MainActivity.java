@@ -16,6 +16,7 @@ import com.microsoft.azure.sdk.iot.device.IotHubConnectionStatusChangeReason;
 import com.microsoft.azure.sdk.iot.device.transport.IotHubConnectionStatus;
 import com.microsoft.azure.sdk.iot.digitaltwin.device.DigitalTwinClientResult;
 import com.microsoft.azure.sdk.iot.digitaltwin.device.DigitalTwinDeviceClient;
+import com.microsoft.azure.sdk.iot.digitaltwin.device.SdkInformationComponent;
 
 import org.apache.commons.io.IOUtils;
 
@@ -40,7 +41,6 @@ public class MainActivity extends AppCompatActivity implements UiHandler {
     private TextView brightnessView;
     private TextView temperatureView;
     private TextView humidityView;
-    private TextView connectivityView;
     private TextView registrationView;
     private TextView onoffView;
     private ObjectAnimator anim;
@@ -54,21 +54,14 @@ public class MainActivity extends AppCompatActivity implements UiHandler {
         brightnessView = (TextView) findViewById(R.id.brightness);
         temperatureView = (TextView) findViewById(R.id.temperature);
         humidityView = (TextView) findViewById(R.id.humidity);
-        connectivityView = (TextView) findViewById(R.id.connectivity);
         registrationView = (TextView) findViewById(R.id.registration);
         onoffView = (TextView) findViewById(R.id.onoff);
         anim = ObjectAnimator.ofInt(findViewById(R.id.blink), "backgroundColor", Color.WHITE, Color.RED, Color.WHITE);
 
         try {
             DeviceClient deviceClient = new DeviceClient(DIGITAL_TWIN_CONNECTION_STRING, MQTT);
-            deviceClient.registerConnectionStatusChangeCallback(new IotHubConnectionStatusChangeCallback() {
-                @Override
-                public void execute(IotHubConnectionStatus status, IotHubConnectionStatusChangeReason statusChangeReason, Throwable throwable, Object callbackContext) {
-                    log.debug("Device client status changed to: {}, reason: {}, cause: {}", status, statusChangeReason, throwable);
-                    updateConnectivity(status);
-                }
-            }, deviceClient);
-            DigitalTwinDeviceClient digitalTwinDeviceClient = new DigitalTwinDeviceClient(deviceClient);
+
+            DigitalTwinDeviceClient digitalTwinDeviceClient = new DigitalTwinDeviceClient(deviceClient, DCM_ID);
             final EnvironmentalSensor environmentalSensor = new EnvironmentalSensor(ENVIRONMENTAL_SENSOR_INTERFACE_INSTANCE_NAME, this);
             final DeviceInformation deviceInformation = DeviceInformation.builder()
                     .manufacturer("Microsoft")
@@ -82,11 +75,18 @@ public class MainActivity extends AppCompatActivity implements UiHandler {
                     .build();
             InputStream environmentalSensorModelDefinition = getAssets().open("EnvironmentalSensor.interface.json");
             final ModelDefinition modelDefinition = ModelDefinition.builder()
-                    .digitalTwinInterfaceInstanceName(MODEL_DEFINITION_INTERFACE_NAME)
+                    .digitalTwinComponentName(MODEL_DEFINITION_INTERFACE_NAME)
                     .environmentalSensorModelDefinition(IOUtils.toString(environmentalSensorModelDefinition, UTF_8))
                     .build();
+
+            // step 1: bindComponents
+            DigitalTwinClientResult bindComponentsResult = digitalTwinDeviceClient.bindComponents(asList(deviceInformation, environmentalSensor, modelDefinition, SdkInformationComponent.getInstance()));
+            log.info("Bind components result: {}.", bindComponentsResult);
+
+            // step 2: send registration message, optional
+            // TODO It's now required for IoTExplorer
             registrationView.setText("Registering...");
-            digitalTwinDeviceClient.registerInterfacesAsync(DCM_ID, asList(deviceInformation, environmentalSensor, modelDefinition)).subscribe(new Consumer<DigitalTwinClientResult>() {
+            digitalTwinDeviceClient.registerComponentsAsync().subscribe(new Consumer<DigitalTwinClientResult>() {
                 @Override
                 public void accept(DigitalTwinClientResult digitalTwinClientResult) {
                     log.debug("Register interfaces {}.", digitalTwinClientResult);
@@ -103,11 +103,29 @@ public class MainActivity extends AppCompatActivity implements UiHandler {
                     updateRegistrationStatus("Register Failed");
                 }
             });
+
+            // step 3: subscribe for commands and properties, optional, to enable command and properties
+            DigitalTwinClientResult subscribeForCommandsResult = digitalTwinDeviceClient.subscribeForCommands();
+            log.info("Subscribe for commands result: {}.", subscribeForCommandsResult);
+            DigitalTwinClientResult subscribeForPropertiesResult = digitalTwinDeviceClient.subscribeForProperties();
+            log.info("Subscribe for properties result: {}.", subscribeForPropertiesResult);
+
+            // step 4: ready to use
+            DigitalTwinClientResult readyResult = digitalTwinDeviceClient.ready();
+            log.info("Notify ready result: {}.", readyResult);
+
+            // step 5: sync up properties, optional
+            DigitalTwinClientResult syncupPropertiesResult = digitalTwinDeviceClient.syncupProperties();
+            log.info("Sync up properties result: {}.", syncupPropertiesResult);
+
+            DigitalTwinClientResult updateStatusResult = environmentalSensor.updateStatusAsync(true).blockingGet();
+            log.info("Update state of environmental sensor to true, result: {}", updateStatusResult);
         } catch (Exception e) {
             log.error("Create device client failed", e);
         }
     }
 
+    @Override
     public void updateName(final String name) {
         runOnUiThread(new Runnable() {
             @Override
@@ -117,6 +135,7 @@ public class MainActivity extends AppCompatActivity implements UiHandler {
         });
     }
 
+    @Override
     public void updateBrightness(final double brightness) {
         runOnUiThread(new Runnable() {
             @Override
@@ -126,29 +145,13 @@ public class MainActivity extends AppCompatActivity implements UiHandler {
         });
     }
 
-    public void updateTemperature(final double temperature) {
+    @Override
+    public void updateTemperatureAndHumidity(final double temperature, final double humidity) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 temperatureView.setText(String.valueOf(temperature));
-            }
-        });
-    }
-
-    public void updateHumidity(final double humidity) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
                 humidityView.setText(String.valueOf(humidity));
-            }
-        });
-    }
-
-    private void updateConnectivity(final IotHubConnectionStatus connectionStatus) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                connectivityView.setText(connectionStatus.toString());
             }
         });
     }
@@ -162,6 +165,7 @@ public class MainActivity extends AppCompatActivity implements UiHandler {
         });
     }
 
+    @Override
     public void updateOnoff(final boolean on) {
         runOnUiThread(new Runnable() {
             @Override
@@ -171,6 +175,7 @@ public class MainActivity extends AppCompatActivity implements UiHandler {
         });
     }
 
+    @Override
     public void startBlink(final long interval) {
         runOnUiThread(new Runnable() {
             @Override

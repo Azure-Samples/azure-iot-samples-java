@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.sdk.iot.digitaltwin.sample;
 
-import com.microsoft.azure.sdk.iot.digitaltwin.device.AbstractDigitalTwinInterfaceClient;
+import com.microsoft.azure.sdk.iot.digitaltwin.device.AbstractDigitalTwinComponent;
 import com.microsoft.azure.sdk.iot.digitaltwin.device.model.DigitalTwinCommandRequest;
 import com.microsoft.azure.sdk.iot.digitaltwin.device.model.DigitalTwinCommandResponse;
 import lombok.Builder;
@@ -15,11 +15,10 @@ import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 
 @Slf4j
-public class ModelDefinition extends AbstractDigitalTwinInterfaceClient {
+public class ModelDefinition extends AbstractDigitalTwinComponent {
     private static final String modelDefinitionInterfaceId = "urn:azureiot:ModelDiscovery:ModelDefinition:1";
 
     private final String environmentalSensorModelDefinition;
@@ -27,8 +26,8 @@ public class ModelDefinition extends AbstractDigitalTwinInterfaceClient {
     private static final String getModelDefinitionCommandName = "getModelDefinition";
 
     @Builder
-    private ModelDefinition(@NonNull String digitalTwinInterfaceInstanceName) throws IOException, URISyntaxException {
-        super(digitalTwinInterfaceInstanceName, modelDefinitionInterfaceId);
+    private ModelDefinition(@NonNull String digitalTwinComponentName) throws IOException {
+        super(digitalTwinComponentName, modelDefinitionInterfaceId);
 
         //Model definition is located in a json file within the resources folder of this sample
         ClassLoader classLoader = ModelDefinition.class.getClassLoader();
