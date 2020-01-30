@@ -125,6 +125,7 @@ public class MainActivity extends AppCompatActivity implements UiHandler {
         }
     }
 
+    @Override
     public void updateName(final String name) {
         runOnUiThread(new Runnable() {
             @Override
@@ -134,6 +135,7 @@ public class MainActivity extends AppCompatActivity implements UiHandler {
         });
     }
 
+    @Override
     public void updateBrightness(final double brightness) {
         runOnUiThread(new Runnable() {
             @Override
@@ -143,19 +145,12 @@ public class MainActivity extends AppCompatActivity implements UiHandler {
         });
     }
 
-    public void updateTemperature(final double temperature) {
+    @Override
+    public void updateTemperatureAndHumidity(final double temperature, final double humidity) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 temperatureView.setText(String.valueOf(temperature));
-            }
-        });
-    }
-
-    public void updateHumidity(final double humidity) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
                 humidityView.setText(String.valueOf(humidity));
             }
         });
@@ -170,6 +165,7 @@ public class MainActivity extends AppCompatActivity implements UiHandler {
         });
     }
 
+    @Override
     public void updateOnoff(final boolean on) {
         runOnUiThread(new Runnable() {
             @Override
@@ -179,6 +175,7 @@ public class MainActivity extends AppCompatActivity implements UiHandler {
         });
     }
 
+    @Override
     public void startBlink(final long interval) {
         runOnUiThread(new Runnable() {
             @Override
