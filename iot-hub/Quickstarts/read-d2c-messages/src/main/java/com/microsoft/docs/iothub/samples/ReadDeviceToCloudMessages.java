@@ -85,10 +85,10 @@ public class ReadDeviceToCloudMessages {
     eventHubConsumerAsyncClient
         .receive(true) // set this to false to read only the newly available events
         .subscribe(partitionEvent -> {
-          System.out.printf("Telemetry received from partition %s: %s%n ",
+          System.out.printf("Telemetry received from partition %s:%n%s",
               partitionEvent.getPartitionContext().getPartitionId(), partitionEvent.getData().getBodyAsString());
-          System.out.println("Application properties (set by device): " + partitionEvent.getData().getProperties());
-          System.out.println("System properties (set by IoT Hub): " + partitionEvent.getData().getSystemProperties());
+          System.out.printf("%nApplication properties (set by device):%n" + partitionEvent.getData().getProperties());
+          System.out.printf("%nSystem properties (set by IoT Hub):%n" + partitionEvent.getData().getSystemProperties());
         }, ex -> {
           System.out.println("Error receiving events " + ex);
         }, () -> {
