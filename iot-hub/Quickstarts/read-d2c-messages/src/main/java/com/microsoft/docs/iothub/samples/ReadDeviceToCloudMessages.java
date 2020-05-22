@@ -84,6 +84,7 @@ public class ReadDeviceToCloudMessages {
     eventHubConsumerAsyncClient
         .receive(false) // set this to false to read only the newly available events
         .subscribe(partitionEvent -> {
+          System.out.println();
           System.out.printf("%nTelemetry received from partition %s:%n%s",
               partitionEvent.getPartitionContext().getPartitionId(), partitionEvent.getData().getBodyAsString());
           System.out.printf("%nApplication properties (set by device):%n%s", partitionEvent.getData().getProperties());
@@ -111,6 +112,7 @@ public class ReadDeviceToCloudMessages {
           return eventHubConsumerAsyncClient
               .receiveFromPartition(partitionId, EventPosition.latest());
         }).subscribe(partitionEvent -> {
+          System.out.println();
           System.out.printf("%nTelemetry received from partition %s:%n%s",
               partitionEvent.getPartitionContext().getPartitionId(), partitionEvent.getData().getBodyAsString());
           System.out.printf("%nApplication properties (set by device):%n%s", partitionEvent.getData().getProperties());
@@ -142,6 +144,7 @@ public class ReadDeviceToCloudMessages {
         }).window(batchSize) // batch the events
         .subscribe(partitionEvents -> {
               partitionEvents.toIterable().forEach(partitionEvent -> {
+                System.out.println();
                 System.out.printf("%nTelemetry received from partition %s:%n%s",
                     partitionEvent.getPartitionContext().getPartitionId(), partitionEvent.getData().getBodyAsString());
                 System.out.printf("%nApplication properties (set by device):%n%s",
