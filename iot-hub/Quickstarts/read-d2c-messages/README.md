@@ -31,5 +31,6 @@ Note that this requires adding a new dependency in your `pom.xml` to use the [Az
 
 If using WebSockets, configure the `EventHubClientBuilder` to use transport type `AmqpTransportType.AMQP_WEB_SOCKETS`.
 
-If your application runs behind a proxy server, then you need to configure the proxy options and set the transport 
-type to `AmqpTransportType.AMQP_WEB_SOCKETS` as shown in [the sample](./src/main/java/com/microsoft/docs/iothub/samples/ReadDeviceToCloudMessages.java). 
+If your application runs behind a proxy server, then, in addition to setting the transport type to 
+AmqpTransportType.AMQP_WEB_SOCKETS, you also need to configure the proxy options as shown in the setupProxy method in 
+[the sample](./src/main/java/com/microsoft/docs/iothub/samples/ReadDeviceToCloudMessages.java).
