@@ -2,114 +2,181 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 // This application uses the Microsoft Azure Event Hubs Client for Java
-// For samples see: https://github.com/Azure/azure-event-hubs/tree/master/samples/Java
-// For documenation see: https://docs.microsoft.com/azure/event-hubs/
+// For samples see: https://github.com/Azure/azure-sdk-for-java/tree/master/sdk/eventhubs/azure-messaging-eventhubs/src/samples
+// For documentation see: https://docs.microsoft.com/azure/event-hubs/
 
 package com.microsoft.docs.iothub.samples;
 
-import com.microsoft.azure.eventhubs.ConnectionStringBuilder;
-import com.microsoft.azure.eventhubs.EventData;
-import com.microsoft.azure.eventhubs.EventHubClient;
-import com.microsoft.azure.eventhubs.EventHubException;
-import com.microsoft.azure.eventhubs.EventPosition;
-import com.microsoft.azure.eventhubs.EventHubRuntimeInformation;
-import com.microsoft.azure.eventhubs.PartitionReceiver;
+import com.azure.core.amqp.AmqpTransportType;
+import com.azure.core.amqp.ProxyAuthenticationType;
+import com.azure.core.amqp.ProxyOptions;
+import com.azure.messaging.eventhubs.EventHubClientBuilder;
+import com.azure.messaging.eventhubs.EventHubConsumerAsyncClient;
+import com.azure.messaging.eventhubs.models.EventPosition;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
 
-import java.io.IOException;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.nio.charset.Charset;
-import java.net.URI;
-import java.net.URISyntaxException;
-
+/**
+ * A sample demonstrating how to receive events from Event Hubs sent from an IoT Hub device.
+ */
 public class ReadDeviceToCloudMessages {
 
+  private static final String EH_COMPATIBLE_CONNECTION_STRING_FORMAT = "Endpoint=%s/;EntityPath=%s;"
+      + "SharedAccessKeyName=%s;SharedAccessKey=%s";
+
   // az iot hub show --query properties.eventHubEndpoints.events.endpoint --name {your IoT Hub name}
-  private static final String eventHubsCompatibleEndpoint = "{your Event Hubs compatible endpoint}";
+  private static final String EVENT_HUBS_COMPATIBLE_ENDPOINT = "{your Event Hubs compatible endpoint}";
 
   // az iot hub show --query properties.eventHubEndpoints.events.path --name {your IoT Hub name}
-  private static final String eventHubsCompatiblePath = "{your Event Hubs compatible name}";
+  private static final String EVENT_HUBS_COMPATIBLE_PATH = "{your Event Hubs compatible name}";
 
   // az iot hub policy show --name service --query primaryKey --hub-name {your IoT Hub name}
-  private static final String iotHubSasKey = "{your service primary key}";
-  private static final String iotHubSasKeyName = "service";
+  private static final String IOT_HUB_SAS_KEY = "{your service primary key}";
+  private static final String IOT_HUB_SAS_KEY_NAME = "service";
 
-  // Track all the PartitionReciever instances created.
-  private static ArrayList<PartitionReceiver> receivers = new ArrayList<PartitionReceiver>();
+  /**
+   * The main method to start the sample application that receives events from Event Hubs sent from an IoT Hub device.
+   *
+   * @param args ignored args.
+   * @throws Exception if there's an error running the application.
+   */
+  public static void main(String[] args) throws Exception {
 
-  // Asynchronously create a PartitionReceiver for a partition and then start 
-  // reading any messages sent from the simulated client.
-  private static void receiveMessages(EventHubClient ehClient, String partitionId)
-      throws EventHubException, ExecutionException, InterruptedException {
+    // Build the Event Hubs compatible connection string.
+    String eventHubCompatibleConnectionString = String.format(EH_COMPATIBLE_CONNECTION_STRING_FORMAT,
+        EVENT_HUBS_COMPATIBLE_ENDPOINT, EVENT_HUBS_COMPATIBLE_PATH, IOT_HUB_SAS_KEY_NAME, IOT_HUB_SAS_KEY);
 
-    final ExecutorService executorService = Executors.newSingleThreadExecutor();
+    // Setup the EventHubBuilder by configuring various options as needed.
+    EventHubClientBuilder eventHubClientBuilder = new EventHubClientBuilder()
+        .consumerGroup(EventHubClientBuilder.DEFAULT_CONSUMER_GROUP_NAME)
+        .connectionString(eventHubCompatibleConnectionString);
 
-    // Create the receiver using the default consumer group.
-    // For the purposes of this sample, read only messages sent since 
-    // the time the receiver is created. Typically, you don't want to skip any messages.
-    ehClient.createReceiver(EventHubClient.DEFAULT_CONSUMER_GROUP_NAME, partitionId,
-        EventPosition.fromEnqueuedTime(Instant.now())).thenAcceptAsync(receiver -> {
-          System.out.println(String.format("Starting receive loop on partition: %s", partitionId));
-          System.out.println(String.format("Reading messages sent since: %s", Instant.now().toString()));
+    // uncomment to setup proxy
+    // setupProxy(eventHubClientBuilder);
 
-          receivers.add(receiver);
+    // uncomment to use Web Sockets
+    // eventHubClientBuilder.transportType(AmqpTransportType.AMQP_WEB_SOCKETS);
 
-          while (true) {
-            try {
-              // Check for EventData - this methods times out if there is nothing to retrieve.
-              Iterable<EventData> receivedEvents = receiver.receiveSync(100);
+    // Create an async consumer client as configured in the builder.
+    try (EventHubConsumerAsyncClient eventHubConsumerAsyncClient = eventHubClientBuilder.buildAsyncConsumerClient()) {
 
-              // If there is data in the batch, process it.
-              if (receivedEvents != null) {
-                for (EventData receivedEvent : receivedEvents) {
-                  System.out.println(String.format("Telemetry received:\n %s",
-                      new String(receivedEvent.getBytes(), Charset.defaultCharset())));
-                  System.out.println(String.format("Application properties (set by device):\n%s",receivedEvent.getProperties().toString()));
-                  System.out.println(String.format("System properties (set by IoT Hub):\n%s\n",receivedEvent.getSystemProperties().toString()));
-                }
-              }
-            } catch (EventHubException e) {
-              System.out.println("Error reading EventData");
-            }
-          }
-        }, executorService);
+      receiveFromAllPartitions(eventHubConsumerAsyncClient);
+
+      // uncomment to run these samples
+      // receiveFromSinglePartition(eventHubConsumerAsyncClient);
+      // receiveFromSinglePartitionInBatches(eventHubConsumerAsyncClient);
+
+      // Shut down cleanly.
+      System.out.println("Press ENTER to exit.");
+      System.in.read();
+      System.out.println("Shutting down...");
+    }
   }
 
-  public static void main(String[] args)
-      throws EventHubException, ExecutionException, InterruptedException, IOException, URISyntaxException {
+  /**
+   * This method receives events from all partitions asynchronously starting from the newly available events in
+   * each partition.
+   *
+   * @param eventHubConsumerAsyncClient The {@link EventHubConsumerAsyncClient}.
+   */
+  private static void receiveFromAllPartitions(EventHubConsumerAsyncClient eventHubConsumerAsyncClient) {
 
-    final ConnectionStringBuilder connStr = new ConnectionStringBuilder()
-        .setEndpoint(new URI(eventHubsCompatibleEndpoint))
-        .setEventHubName(eventHubsCompatiblePath)
-        .setSasKeyName(iotHubSasKeyName)
-        .setSasKey(iotHubSasKey);
+    eventHubConsumerAsyncClient
+        .receive(false) // set this to false to read only the newly available events
+        .subscribe(partitionEvent -> {
+          System.out.println();
+          System.out.printf("%nTelemetry received from partition %s:%n%s",
+              partitionEvent.getPartitionContext().getPartitionId(), partitionEvent.getData().getBodyAsString());
+          System.out.printf("%nApplication properties (set by device):%n%s", partitionEvent.getData().getProperties());
+          System.out.printf("%nSystem properties (set by IoT Hub):%n%s",
+              partitionEvent.getData().getSystemProperties());
+        }, ex -> {
+          System.out.println("Error receiving events " + ex);
+        }, () -> {
+          System.out.println("Completed receiving events");
+        });
+  }
 
-    // Create an EventHubClient instance to connect to the
-    // IoT Hub Event Hubs-compatible endpoint.
-    final ExecutorService executorService = Executors.newSingleThreadExecutor();
-    final EventHubClient ehClient = EventHubClient.createSync(connStr.toString(), executorService);
+  /**
+   * This method queries all available partitions in the Event Hub and picks a single partition to receive
+   * events asynchronously starting from the newly available event in that partition.
+   *
+   * @param eventHubConsumerAsyncClient The {@link EventHubConsumerAsyncClient}.
+   */
+  private static void receiveFromSinglePartition(EventHubConsumerAsyncClient eventHubConsumerAsyncClient) {
+    eventHubConsumerAsyncClient
+        .getPartitionIds() // get all available partitions
+        .take(1) // pick a single partition
+        .flatMap(partitionId -> {
+          System.out.println("Receiving events from partition id " + partitionId);
+          return eventHubConsumerAsyncClient
+              .receiveFromPartition(partitionId, EventPosition.latest());
+        }).subscribe(partitionEvent -> {
+          System.out.println();
+          System.out.printf("%nTelemetry received from partition %s:%n%s",
+              partitionEvent.getPartitionContext().getPartitionId(), partitionEvent.getData().getBodyAsString());
+          System.out.printf("%nApplication properties (set by device):%n%s", partitionEvent.getData().getProperties());
+          System.out.printf("%nSystem properties (set by IoT Hub):%n%s",
+              partitionEvent.getData().getSystemProperties());
+        }, ex -> {
+          System.out.println("Error receiving events " + ex);
+        }, () -> {
+          System.out.println("Completed receiving events");
+        }
+    );
+  }
 
-    // Use the EventHubRunTimeInformation to find out how many partitions 
-    // there are on the hub.
-    final EventHubRuntimeInformation eventHubInfo = ehClient.getRuntimeInformation().get();
+  /**
+   * This method queries all available partitions in the Event Hub and picks a single partition to receive
+   * events asynchronously in batches of 100 events, starting from the newly available event in that partition.
+   *
+   * @param eventHubConsumerAsyncClient The {@link EventHubConsumerAsyncClient}.
+   */
+  private static void receiveFromSinglePartitionInBatches(EventHubConsumerAsyncClient eventHubConsumerAsyncClient) {
+    int batchSize = 100;
+    eventHubConsumerAsyncClient
+        .getPartitionIds()
+        .take(1)
+        .flatMap(partitionId -> {
+          System.out.println("Receiving events from partition id " + partitionId);
+          return eventHubConsumerAsyncClient
+              .receiveFromPartition(partitionId, EventPosition.latest());
+        }).window(batchSize) // batch the events
+        .subscribe(partitionEvents -> {
+              partitionEvents.toIterable().forEach(partitionEvent -> {
+                System.out.println();
+                System.out.printf("%nTelemetry received from partition %s:%n%s",
+                    partitionEvent.getPartitionContext().getPartitionId(), partitionEvent.getData().getBodyAsString());
+                System.out.printf("%nApplication properties (set by device):%n%s",
+                    partitionEvent.getData().getProperties());
+                System.out.printf("%nSystem properties (set by IoT Hub):%n%s",
+                        partitionEvent.getData().getSystemProperties());
+              });
+            }, ex -> {
+              System.out.println("Error receiving events " + ex);
+            }, () -> {
+              System.out.println("Completed receiving events");
+            }
+        );
+  }
 
-    // Create a PartitionReciever for each partition on the hub.
-    for (String partitionId : eventHubInfo.getPartitionIds()) {
-      receiveMessages(ehClient, partitionId);
-    }
+  /**
+   * This method sets up proxy options and updates the {@link EventHubClientBuilder}.
+   *
+   * @param eventHubClientBuilder The {@link EventHubClientBuilder}.
+   */
+  private static void setupProxy(EventHubClientBuilder eventHubClientBuilder) {
+    int proxyPort = 8000; // replace with right proxy port
+    String proxyHost = "{hostname}";
+    Proxy proxyAddress = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyHost, proxyPort));
+    String userName = "{username}";
+    String password = "{password}";
+    ProxyOptions proxyOptions = new ProxyOptions(ProxyAuthenticationType.BASIC, proxyAddress,
+        userName, password);
 
-    // Shut down cleanly.
-    System.out.println("Press ENTER to exit.");
-    System.in.read();
-    System.out.println("Shutting down...");
-    for (PartitionReceiver receiver : receivers) {
-      receiver.closeSync();
-    }
-    ehClient.closeSync();
-    executorService.shutdown();
-    System.exit(0);
+    eventHubClientBuilder.proxyOptions(proxyOptions);
+
+    // To use proxy, the transport type has to be Web Sockets.
+    eventHubClientBuilder.transportType(AmqpTransportType.AMQP_WEB_SOCKETS);
   }
 }
