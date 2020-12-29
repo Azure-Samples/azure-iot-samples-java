@@ -52,12 +52,9 @@ public class InvokeDigitalTwinAsyncCommandSample {
         DigitalTwinCommandResponse digitalTwinCommandResponse = digitalTwinServiceClient.invokeCommand(DEVICE_ID, INTERFACE_INSTANCE_NAME, ASYNC_COMMAND_NAME, PAYLOAD);
 
         log.info("Command invoked on the device successfully, the returned status was " + digitalTwinCommandResponse.getStatus() + " and the request id was " + digitalTwinCommandResponse.getRequestId());
-        if (digitalTwinCommandResponse.getPayload() == null)
-        {
+        if (digitalTwinCommandResponse.getPayload() == null) {
             log.info("The returned PAYLOAD was null");
-        }
-        else
-        {
+        } else {
             log.info("The returned PAYLOAD was ");
             log.info(toPrettyFormat(digitalTwinCommandResponse.getPayload()));
         }
@@ -71,14 +68,14 @@ public class InvokeDigitalTwinAsyncCommandSample {
                 .connectionString(EVENTHUB_CONNECTION_STRING)
                 .consumerGroup(EventHubClientBuilder.DEFAULT_CONSUMER_GROUP_NAME)
                 .buildConsumerClient();
-        ConcurrentMap<String,Instant> instantMap = new ConcurrentHashMap();
+        ConcurrentMap<String, Instant> instantMap = new ConcurrentHashMap();
         Iterator<String> partitionIterators = eventHubConsumerClient.getPartitionIds().iterator();
-        while (partitionIterators.hasNext()){
+        while (partitionIterators.hasNext()) {
             String partitionId = partitionIterators.next();
-            instantMap.put(partitionId,Instant.now().minusSeconds(0));
+            instantMap.put(partitionId, Instant.now().minusSeconds(0));
             executorService.scheduleWithFixedDelay(() -> {
                 IterableStream<PartitionEvent> partitionEventIterableStream =
-                        eventHubConsumerClient.receiveFromPartition(partitionId,1,
+                        eventHubConsumerClient.receiveFromPartition(partitionId, 1,
                                 EventPosition.fromEnqueuedTime(instantMap.get(partitionId)),
                                 Duration.ofSeconds(RECEIVE_TIMEOUT));
                 System.out.println(String.format("EventHub receiver created for partition %s, listening from %s [OperationTimeout: %s secs]", partitionId, instantMap.get(partitionId), RECEIVE_TIMEOUT));
@@ -107,7 +104,7 @@ public class InvokeDigitalTwinAsyncCommandSample {
             log.trace("No events received.");
         } else {
             log.trace("ReceivedBatch Size: {}", batchSize);
-            while ( eventIterator.hasNext() ) {
+            while (eventIterator.hasNext()) {
                 EventData receivedEvent = eventIterator.next().getData();
                 if (receivedEvent.getProperties() != null
                         && receivedEvent.getProperties().keySet().contains(COMMAND_REQUEST_ID_PROPERTY_NAME)) {
