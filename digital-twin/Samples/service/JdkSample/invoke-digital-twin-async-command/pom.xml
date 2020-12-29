@@ -12,8 +12,8 @@
     <version>${project-service-samples-version}</version>
     <dependencies>
         <dependency>
-            <groupId>com.microsoft.azure</groupId>
-            <artifactId>azure-eventhubs</artifactId>
+            <groupId>com.azure</groupId>
+            <artifactId>azure-messaging-eventhubs</artifactId>
             <version>${azure-eventhubs-version}</version>
         </dependency>
     </dependencies>
