@@ -1,3 +1,5 @@
+#### * All the samples have been moved to our main repository [azure-iot-sdk-java](https://github.com/Azure/azure-iot-sdk-java).
+
 ---
 page_type: sample
 languages:
